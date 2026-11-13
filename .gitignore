@@ -1,0 +1,33 @@
+# Credentials and environment variables
+.env
+*.env
+secrets/
+credentials/
+
+# Database backups and exports
+*.bak
+*.trn
+*.dmp
+*.dump
+*.db
+*.mdf
+*.ldf
+
+# Logs
+*.log
+logs/
+
+# Visual Studio temporary files
+.vs/
+bin/
+obj/
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
