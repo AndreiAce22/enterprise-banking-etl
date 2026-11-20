@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<DTS:Executable xmlns:DTS="www.microsoft.com/SqlServer/Dts"
+  DTS:refId="Package"
+  DTS:CreationDate="11/19/2026 12:41:03 PM"
+  DTS:CreationName="Microsoft.Package"
+  DTS:CreatorComputerName="MSI"
+  DTS:CreatorName="MSI\lacer"
+  DTS:DTSID="{474B2314-3B4F-4C19-8737-F94E6C0F0891}"
+  DTS:ExecutableType="Microsoft.Package"
+  DTS:LastModifiedProductVersion="16.0.948.0"
+  DTS:LocaleID="13321"
+  DTS:ObjectName="PKG_04_Create_Facts"
+  DTS:PackageType="5"
+  DTS:ProtectionLevel="0"
+  DTS:VersionBuild="4"
+  DTS:VersionGUID="{04134D91-7A54-4344-BA7A-77E7917751EC}">
+  <DTS:Property
+    DTS:Name="PackageFormatVersion">8</DTS:Property>
+  <DTS:ConnectionManagers>
+    <DTS:ConnectionManager
+      DTS:refId="Package.ConnectionManagers[BANKING_DWH]"
+      DTS:CreationName="OLEDB"
+      DTS:DTSID="{67A84F53-2170-4D5A-A4F6-1328BE344644}"
+      DTS:ObjectName="BANKING_DWH">
+      <DTS:ObjectData>
+        <DTS:ConnectionManager
+          DTS:ConnectRetryCount="1"
+          DTS:ConnectRetryInterval="5"
+          DTS:ConnectionString="Data Source=YOUR_SQL_SERVER;Initial Catalog=BANKING_DWH;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;Application Name=SSIS-Package-{67A84F53-2170-4D5A-A4F6-1328BE344644}LocalHost.BANKING_DWH;" />
+      </DTS:ObjectData>
+    </DTS:ConnectionManager>
+  </DTS:ConnectionManagers>
+  <DTS:Variables />
+  <DTS:Executables>
+    <DTS:Executable
+      DTS:refId="Package\Create Fact Tables"
+      DTS:CreationName="Microsoft.ExecuteSQLTask"
+      DTS:Description="Execute SQL Task"
+      DTS:DTSID="{CDC2CA9E-CBA9-4659-821E-F2026B0F2396}"
+      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="Create Fact Tables"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <SQLTask:SqlTaskData
+          SQLTask:Connection="{67A84F53-2170-4D5A-A4F6-1328BE344644}"
+          SQLTask:SqlStatementSource="&#xA;/* =====================================================&#xA;   PACKAGE: PKG_04_Facts&#xA;   DATABASE: BANKING_DWH&#xA;&#xA;   PURPOSE:&#xA;   Create missing fact tables, constraints and indexes.&#xA;&#xA;   IMPORTANT:&#xA;   - Existing tables are not modified.&#xA;   - Existing records are not deleted.&#xA;   - No DROP or TRUNCATE statements.&#xA;===================================================== */&#xA;&#xA;&#xA;/* =====================================================&#xA;   1. FACT ACCOUNT BALANCE&#xA;===================================================== */&#xA;&#xA;IF OBJECT_ID('dw.FactAccountBalance', 'U') IS NULL&#xA;BEGIN&#xA;&#xA;    CREATE TABLE dw.FactAccountBalance&#xA;    (&#xA;        AccountBalanceKey BIGINT IDENTITY(1,1) NOT NULL,&#xA;        AccountKey INT NOT NULL,&#xA;        DateKey INT NOT NULL,&#xA;        CurrentBalance DECIMAL(18,2) NOT NULL,&#xA;        CurrencyCode CHAR(3) NOT NULL,&#xA;        CreatedAt DATETIME2(7) NOT NULL,&#xA;&#xA;        CONSTRAINT PK_FactAccountBalance&#xA;            PRIMARY KEY CLUSTERED (AccountBalanceKey),&#xA;&#xA;        CONSTRAINT UQ_FactAccountBalance_Account_Date&#xA;            UNIQUE NONCLUSTERED (AccountKey, DateKey),&#xA;&#xA;        CONSTRAINT FK_FactAccountBalance_DimAccount&#xA;            FOREIGN KEY (AccountKey)&#xA;            REFERENCES dw.DimAccount(AccountKey),&#xA;&#xA;        CONSTRAINT FK_FactAccountBalance_DimDate&#xA;            FOREIGN KEY (DateKey)&#xA;            REFERENCES dw.DimDate(DateKey)&#xA;    );&#xA;&#xA;END;&#xA;&#xA;&#xA;/* =====================================================&#xA;   2. FACT LOAN BALANCE&#xA;===================================================== */&#xA;&#xA;IF OBJECT_ID('dw.FactLoanBalance', 'U') IS NULL&#xA;BEGIN&#xA;&#xA;    CREATE TABLE dw.FactLoanBalance&#xA;    (&#xA;        LoanBalanceKey BIGINT IDENTITY(1,1) NOT NULL,&#xA;        LoanKey INT NOT NULL,&#xA;        DateKey INT NOT NULL,&#xA;        OutstandingBalance DECIMAL(18,2) NOT NULL,&#xA;        CurrencyCode CHAR(3) NOT NULL,&#xA;        CreatedAt DATETIME2(7) NOT NULL,&#xA;&#xA;        CONSTRAINT PK_FactLoanBalance&#xA;            PRIMARY KEY CLUSTERED (LoanBalanceKey),&#xA;&#xA;        CONSTRAINT UQ_FactLoanBalance_Loan_Date&#xA;            UNIQUE NONCLUSTERED (LoanKey, DateKey),&#xA;&#xA;        CONSTRAINT FK_FactLoanBalance_DimLoan&#xA;            FOREIGN KEY (LoanKey)&#xA;            REFERENCES dw.DimLoan(LoanKey),&#xA;&#xA;        CONSTRAINT FK_FactLoanBalance_DimDate&#xA;            FOREIGN KEY (DateKey)&#xA;            REFERENCES dw.DimDate(DateKey)&#xA;    );&#xA;&#xA;END;&#xA;&#xA;&#xA;/* =====================================================&#xA;   3. FACT LOAN PAYMENTS&#xA;===================================================== */&#xA;&#xA;IF OBJECT_ID('dw.FactLoanPayments', 'U') IS NULL&#xA;BEGIN&#xA;&#xA;    CREATE TABLE dw.FactLoanPayments&#xA;    (&#xA;        LoanPaymentKey BIGINT IDENTITY(1,1) NOT NULL,&#xA;        PaymentID BIGINT NOT NULL,&#xA;        LoanKey INT NOT NULL,&#xA;        PaymentDateKey INT NOT NULL,&#xA;        DueDateKey INT NOT NULL,&#xA;        PrincipalPaid DECIMAL(16,2) NOT NULL,&#xA;        InterestPaid DECIMAL(16,2) NOT NULL,&#xA;        TotalPayment DECIMAL(16,2) NOT NULL,&#xA;        PaymentStatus VARCHAR(15) NOT NULL,&#xA;        PaymentChannel VARCHAR(20) NOT NULL,&#xA;        ReferenceNumber VARCHAR(30) NOT NULL,&#xA;        CreatedAt DATETIME2(7) NOT NULL,&#xA;        DWCreatedAt DATETIME2(7) NOT NULL,&#xA;&#xA;        CONSTRAINT PK_FactLoanPayments&#xA;            PRIMARY KEY CLUSTERED (LoanPaymentKey),&#xA;&#xA;        CONSTRAINT UQ_FactLoanPayments_PaymentID&#xA;            UNIQUE NONCLUSTERED (PaymentID),&#xA;&#xA;        CONSTRAINT FK_FactLoanPayments_DimLoan&#xA;            FOREIGN KEY (LoanKey)&#xA;            REFERENCES dw.DimLoan(LoanKey),&#xA;&#xA;        CONSTRAINT FK_FactLoanPayments_PaymentDate&#xA;            FOREIGN KEY (PaymentDateKey)&#xA;            REFERENCES dw.DimDate(DateKey),&#xA;&#xA;        CONSTRAINT FK_FactLoanPayments_DueDate&#xA;            FOREIGN KEY (DueDateKey)&#xA;            REFERENCES dw.DimDate(DateKey)&#xA;    );&#xA;&#xA;&#xA;    CREATE NONCLUSTERED INDEX&#xA;        IX_FactLoanPayments_PaymentDateKey&#xA;    ON dw.FactLoanPayments&#xA;        (PaymentDateKey)&#xA;    INCLUDE&#xA;        (TotalPayment);&#xA;&#xA;END;&#xA;&#xA;&#xA;/* =====================================================&#xA;   4. FACT TRANSACTIONS&#xA;===================================================== */&#xA;&#xA;IF OBJECT_ID('dw.FactTransactions', 'U') IS NULL&#xA;BEGIN&#xA;&#xA;    CREATE TABLE dw.FactTransactions&#xA;    (&#xA;        TransactionKey BIGINT IDENTITY(1,1) NOT NULL,&#xA;        TransactionID BIGINT NOT NULL,&#xA;        DateKey INT NOT NULL,&#xA;        AccountKey INT NOT NULL,&#xA;        BranchKey INT NOT NULL,&#xA;        TransactionType VARCHAR(30) NOT NULL,&#xA;        Channel VARCHAR(20) NOT NULL,&#xA;        TransactionAmount DECIMAL(16,2) NOT NULL,&#xA;        CurrencyCode CHAR(3) NOT NULL,&#xA;        TransactionStatus VARCHAR(15) NOT NULL,&#xA;        ReferenceNumber VARCHAR(30) NOT NULL,&#xA;        Description VARCHAR(200) NULL,&#xA;        SourceCreatedAt DATETIME2(6) NOT NULL,&#xA;        DWCreatedAt DATETIME2(7) NOT NULL,&#xA;        TransactionDateTime DATETIME2(6) NOT NULL,&#xA;&#xA;        CONSTRAINT PK_FactTransactions&#xA;            PRIMARY KEY CLUSTERED (TransactionKey),&#xA;&#xA;        CONSTRAINT UQ_FactTransactions_TransactionID&#xA;            UNIQUE NONCLUSTERED (TransactionID),&#xA;&#xA;        CONSTRAINT FK_FactTransactions_DimDate&#xA;            FOREIGN KEY (DateKey)&#xA;            REFERENCES dw.DimDate(DateKey),&#xA;&#xA;        CONSTRAINT FK_FactTransactions_DimAccount&#xA;            FOREIGN KEY (AccountKey)&#xA;            REFERENCES dw.DimAccount(AccountKey),&#xA;&#xA;        CONSTRAINT FK_FactTransactions_DimBranch&#xA;            FOREIGN KEY (BranchKey)&#xA;            REFERENCES dw.DimBranch(BranchKey)&#xA;    );&#xA;&#xA;&#xA;    /* Account and transaction date index */&#xA;&#xA;    CREATE NONCLUSTERED INDEX&#xA;        IX_FactTransactions_Account_Date&#xA;    ON dw.FactTransactions&#xA;        (AccountKey, TransactionDateTime)&#xA;    INCLUDE&#xA;    (&#xA;        TransactionID,&#xA;        TransactionType,&#xA;        TransactionAmount,&#xA;        TransactionStatus,&#xA;        Channel,&#xA;        CurrencyCode&#xA;    );&#xA;&#xA;&#xA;    /* Branch and transaction date index */&#xA;&#xA;    CREATE NONCLUSTERED INDEX&#xA;        IX_FactTransactions_Branch_Date&#xA;    ON dw.FactTransactions&#xA;        (BranchKey, TransactionDateTime)&#xA;    INCLUDE&#xA;    (&#xA;        TransactionID,&#xA;        TransactionType,&#xA;        TransactionAmount,&#xA;        TransactionStatus,&#xA;        Channel,&#xA;        CurrencyCode&#xA;    );&#xA;&#xA;&#xA;    /* Date-based reporting index */&#xA;&#xA;    CREATE NONCLUSTERED INDEX&#xA;        IX_FactTransactions_Date&#xA;    ON dw.FactTransactions&#xA;        (DateKey)&#xA;    INCLUDE&#xA;    (&#xA;        TransactionID,&#xA;        AccountKey,&#xA;        BranchKey,&#xA;        TransactionType,&#xA;        TransactionAmount,&#xA;        TransactionStatus,&#xA;        Channel,&#xA;        CurrencyCode&#xA;    );&#xA;&#xA;END;&#xA;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+      </DTS:ObjectData>
+    </DTS:Executable>
+  </DTS:Executables>
+  <DTS:DesignTimeProperties><![CDATA[<?xml version="1.0"?>
+<!--This CDATA section contains the layout information of the package. The section includes information such as (x,y) coordinates, width, and height.-->
+<!--If you manually edit this section and make a mistake, you can delete it. -->
+<!--The package will still be able to load normally but the previous layout information will be lost and the designer will automatically re-arrange the elements on the design surface.-->
+<Objects
+  Version="8">
+  <!--Each node below will contain properties that do not affect runtime behavior.-->
+  <Package
+    design-time-name="Package">
+    <LayoutInfo>
+      <GraphLayout
+        Capacity="4" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph">
+        <NodeLayout
+          Size="165.6,41.6"
+          Id="Package\Create Fact Tables"
+          TopLeft="132.142859393237,73.4117657354546" />
+      </GraphLayout>
+    </LayoutInfo>
+  </Package>
+</Objects>]]></DTS:DesignTimeProperties>
+</DTS:Executable>

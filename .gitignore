@@ -17,10 +17,13 @@ credentials/
 *.log
 logs/
 
-# Visual Studio temporary files
+# Visual Studio and SSIS temporary files
 .vs/
-bin/
-obj/
+**/bin/
+**/obj/
+*.dtproj.user
+*.suo
+*.user
 
 # Temporary files
 *.tmp
